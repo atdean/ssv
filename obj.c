@@ -218,22 +218,20 @@ int main(int argc, char *argv[]) {
 			printf("q: %d, v: %d, fi: %d, xyz: %d, %d, %d\n", i, ii, (*faces[ii]) - 1, object_vertices[(*faces[ii]) - 1].x, object_vertices[(*faces[ii]) - 1].y, object_vertices[(*faces[ii]) - 1].z);
 		}
 	}
-
-	unsigned int uface_found = face_count;
+	int32_t uface_found = face_count;
 	uface_found = ((uface_found>>24)&0xff) | // move byte 3 to byte 0
                     ((uface_found<<8)&0xff0000) | // move byte 1 to byte 2
                     ((uface_found>>8)&0xff00) | // move byte 2 to byte 1
                     ((uface_found<<24)&0xff000000); // byte 0 to byte 3
-
 	fp = fopen(out_file, "w");
 
-	fwrite(&uface_found, 1, sizeof(unsigned int), fp);
-	fwrite(&quads, 1, sizeof(struct quad)*uface_found, fp);
+	fwrite(&uface_found, 1, sizeof(int32_t), fp);
+	fwrite(&quads, 1, sizeof(struct quad)*face_count, fp);
 
 	fclose(fp);
 
 	printf("File saved: %s\n", out_file);
-	printf("Byts written: %lu\n", sizeof(unsigned int) + sizeof(struct quad)*face_count);
+	printf("Byts written: %lu\n", sizeof(int32_t) + sizeof(struct quad)*face_count);
 
 	return 0;
 }
