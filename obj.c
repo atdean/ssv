@@ -220,6 +220,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	unsigned int uface_found = face_count;
+	uface_found = ((uface_found>>24)&0xff) | // move byte 3 to byte 0
+                    ((uface_found<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((uface_found>>8)&0xff00) | // move byte 2 to byte 1
+                    ((uface_found<<24)&0xff000000); // byte 0 to byte 3
 
 	fp = fopen(out_file, "w");
 
