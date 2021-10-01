@@ -6,18 +6,18 @@ enum type {
 };
 
 struct quad {
-	int x[4];
-	int y[4];
-	int z[4];
+	int32_t x[4];
+	int32_t y[4];
+	int32_t z[4];
 
 	enum type type;
-	unsigned int texture;
+	uint32_t texture;
 };
 
 struct vertice {
-	int x;
-	int y;
-	int z;
+	int32_t x;
+	int32_t y;
+	int32_t z;
 };
 
 int next_char_pointer(char *content, int current_offset, int lim, char delim) {
@@ -201,6 +201,20 @@ int main(int argc, char *argv[]) {
 			quads[i].y[ii] = object_vertices[(*faces[ii]) - 1].y;
 			quads[i].z[ii] = object_vertices[(*faces[ii]) - 1].z;
 
+			quads[i].x[ii] = ((quads[i].x[ii]>>24)&0xff) | // move byte 3 to byte 0
+                    ((quads[i].x[ii]<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((quads[i].x[ii]>>8)&0xff00) | // move byte 2 to byte 1
+                    ((quads[i].x[ii]<<24)&0xff000000); // byte 0 to byte 3
+			quads[i].y[ii] = ((quads[i].y[ii]>>24)&0xff) | // move byte 3 to byte 0
+                    ((quads[i].y[ii]<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((quads[i].y[ii]>>8)&0xff00) | // move byte 2 to byte 1
+                    ((quads[i].y[ii]<<24)&0xff000000); // byte 0 to byte 3
+			quads[i].z[ii] = ((quads[i].z[ii]>>24)&0xff) | // move byte 3 to byte 0
+                    ((quads[i].z[ii]<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((quads[i].z[ii]>>8)&0xff00) | // move byte 2 to byte 1
+                    ((quads[i].z[ii]<<24)&0xff000000); // byte 0 to byte 3
+			
+
 			printf("q: %d, v: %d, fi: %d, xyz: %d, %d, %d\n", i, ii, (*faces[ii]) - 1, object_vertices[(*faces[ii]) - 1].x, object_vertices[(*faces[ii]) - 1].y, object_vertices[(*faces[ii]) - 1].z);
 		}
 	}
@@ -215,7 +229,7 @@ int main(int argc, char *argv[]) {
 	fclose(fp);
 
 	printf("File saved: %s\n", out_file);
-	printf("Byts written: %d\n", sizeof(unsigned int) + sizeof(struct quad)*uface_found);
+	printf("Byts written: %lu\n", sizeof(unsigned int) + sizeof(struct quad)*face_count);
 
 	return 0;
 }
