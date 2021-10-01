@@ -11,7 +11,7 @@ struct quad {
 	int32_t z[4];
 
 	enum type type;
-	uint32_t texture;
+	int32_t texture;
 };
 
 struct vertice {
