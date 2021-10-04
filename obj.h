@@ -2,12 +2,15 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <stdint.h>
 
 enum type; 
 
 struct quad; 
 struct vertice;
 typedef unsigned int face[4];
+
+int scale = 10;
 
 int next_char_pointer(char *content, int current_offset, int lim, char delim);
 
