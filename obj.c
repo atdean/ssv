@@ -31,11 +31,38 @@ int32_t next_char_pointer(char *content, int32_t current_offset, int32_t lim, ch
 	return current_offset + i;
 };
 
+int swap_endiness(int value) {
+
+	// Calculate sign of int
+	int sign = value/abs(value);
+
+	int sign_bit = value && sign;
+	// Flip sign from initial value
+	value ^= sign_bit;
+
+	// Swap bits as if it is an unsigned int
+	int swapped = ((value>>24)&0xff) | // move byte 3 to byte 0
+					((value<<8)&0xff0000) | // move byte 1 to byte 2
+					((value>>8)&0xff00) | // move byte 2 to byte 1
+					((value<<24)&0xff000000); // byte 0 to byte 3
+
+	// Flip the sign bit back since it stays in the same place
+	if (sign < 0) {
+		swapped ^= sign_bit;
+	}
+
+	printf("Endiness swap: Initial value: %d. Final value: %d\n", value, swapped);
+	return swapped;
+}
+
 int32_t main(int32_t argc, char *argv[]) {
 	if (argc < 3) {
 		printf("No infile or outfile supplied");
 		return 0;
 	}
+
+	printf("Sizeof type: %d\n", sizeof(int32_t));
+
 	in_file = argv[1];
 	out_file = argv[2];	
 	
@@ -199,37 +226,25 @@ int32_t main(int32_t argc, char *argv[]) {
 			quads[i].x[ii] = object_vertices[(faces[i][ii]) - 1].x;
 			quads[i].y[ii] = object_vertices[(faces[i][ii]) - 1].y;
 			quads[i].z[ii] = object_vertices[(faces[i][ii]) - 1].z;
+
+			quads[i].texture = 0;
+			quads[i].type = COL;
 			
 			// Flip the bits
-			quads[i].x[ii] = ((quads[i].x[ii]>>24)&0xff) | // move byte 3 to byte 0
-                    ((quads[i].x[ii]<<8)&0xff0000) | // move byte 1 to byte 2
-                    ((quads[i].x[ii]>>8)&0xff00) | // move byte 2 to byte 1
-                    ((quads[i].x[ii]<<24)&0xff000000); // byte 0 to byte 3
-				
-			quads[i].y[ii] = ((quads[i].y[ii]>>24)&0xff) | // move byte 3 to byte 0
-                    ((quads[i].y[ii]<<8)&0xff0000) | // move byte 1 to byte 2
-                    ((quads[i].y[ii]>>8)&0xff00) | // move byte 2 to byte 1
-                    ((quads[i].y[ii]<<24)&0xff000000); // byte 0 to byte 3
-			
-			quads[i].z[ii] = ((quads[i].z[ii]>>24)&0xff) | // move byte 3 to byte 0
-                    ((quads[i].z[ii]<<8)&0xff0000) | // move byte 1 to byte 2
-                    ((quads[i].z[ii]>>8)&0xff00) | // move byte 2 to byte 1
-                    ((quads[i].z[ii]<<24)&0xff000000); // byte 0 to byte 3
+			quads[i].x[ii] = swap_endiness(quads[i].x[ii]);
+			quads[i].y[ii] = swap_endiness(quads[i].y[ii]);
+			quads[i].z[ii] = swap_endiness(quads[i].z[ii]);
 
 			printf("q: %d, v: %d, fi: %d, xyz: %d, %d, %d\n", i, ii, (faces[i][ii]) - 1, object_vertices[(faces[i][ii]) - 1].x, object_vertices[(faces[i][ii]) - 1].y, object_vertices[(faces[i][ii]) - 1].z);
 		}
 	}
 
 	int32_t uface_found = face_count;
-	uface_found = ((uface_found>>24)&0xff) | // move byte 3 to byte 0
-                    ((uface_found<<8)&0xff0000) | // move byte 1 to byte 2
-                    ((uface_found>>8)&0xff00) | // move byte 2 to byte 1
-                    ((uface_found<<24)&0xff000000); // byte 0 to byte 3
-
+	uface_found = swap_endiness(uface_found);
 	fp = fopen(out_file, "w");
 
 	fwrite(&uface_found, 1, sizeof(int32_t), fp);
-	fwrite(&quads, 1, sizeof(struct quad)*uface_found, fp);
+	fwrite(&quads, 1, sizeof(struct quad)*face_count, fp);
 
 	fclose(fp);
 
